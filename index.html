@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Animate a marker along line</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="/js/leaflet.ajax.js"></script>
+<style>
+  body { margin:0; padding:0; }
+  #map { position:absolute; top:0; bottom:0; width:100%; }
+</style>
+</head>
+<body>
+<div id='map'></div>
+
+<script>
+L.mapbox.accessToken = 'pk.eyJ1IjoiY3J1emluNzN2dyIsImEiOiI3RDdhUi1NIn0.jaEqREZw7QQMRafKPNBdmA';
+var map = L.mapbox.map('map', 'mapbox.streets').setView([34.0500, -118.2500], 12);
+
+    
+// Generate a GeoJSON line. You could also load GeoJSON via AJAX
+// or generate it some other way.
+var gold;    
+$.ajax({
+    type: "POST",
+    url: "/data/goldline.geojson",
+    dataType: 'json',
+    success: function (response) {
+
+        gold = L.geoJson(response, {
+            style: yourLeafletStyle
+        }).addTo(map);
+    }
+});    
+var start = [10, 20];
+var momentum = [3, 3];
+
+// Create a counter with a value of 0.
+var j = 0;
+
+// Create a marker and add it to the map.
+var marker = L.marker([0, 0], {
+  icon: L.mapbox.marker.icon({
+    'marker-color': '#f86767'
+  })
+}).addTo(map);
+
+tick();
+function tick() {
+    // Set the marker to be at the same point as one
+    // of the segments or the line.
+    marker.setLatLng(L.latLng(
+        gold.feature.geometry.coordinates[j][1],
+        gold.feature.geometry.coordinates[j][0]));
+
+    // Move to the next point of the line
+    // until `j` reaches the length of the array.
+    if (++j < gold.coordinates.length) setTimeout(tick, 100);
+}
+</script>
+</body>
+</html>
